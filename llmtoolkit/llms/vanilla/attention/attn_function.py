@@ -1,16 +1,9 @@
-"""
-Author: jianzhnie
-Date: 2021-12-16 14:18:44
-LastEditTime: 2022-03-24 10:45:03
-LastEditors: jianzhnie
-Description:
-
-"""
+import math
+from typing import Optional
 
 import torch
 import torch.nn as nn
-import math
-from typing import Optional
+
 from llmtoolkit.losses.mask_softmax import masked_softmax
 
 
@@ -69,9 +62,8 @@ class AdditiveAttention(nn.Module):
             Perform additive attention and return the attention-weighted values.
     """
 
-    def __init__(
-        self, key_size: int, query_size: int, num_hiddens: int, dropout: float
-    ):
+    def __init__(self, key_size: int, query_size: int, num_hiddens: int,
+                 dropout: float):
         """Initialize the AdditiveAttention module.
 
         Args:
@@ -248,9 +240,9 @@ class MultiHeadAttention(nn.Module):
 
         if valid_lens is not None:
             # Repeat valid_lens to match the shape of transformed queries, keys, and values
-            valid_lens = torch.repeat_interleave(
-                valid_lens, repeats=self.num_heads, dim=0
-            )
+            valid_lens = torch.repeat_interleave(valid_lens,
+                                                 repeats=self.num_heads,
+                                                 dim=0)
         output = self.attention(queries, keys, values, valid_lens)
         # (batch_size * num_heads, num_queries or num_key_value_pairs, num_hiddens / num_heads)
         output = transpose_output(output, self.num_heads)
@@ -260,13 +252,17 @@ class MultiHeadAttention(nn.Module):
         return output
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     queries = torch.normal(0, 1, (2, 1, 20))
     keys = torch.ones((2, 10, 2))
-    values = torch.arange(40, dtype=torch.float32).reshape(1, 10, 4).repeat(2, 1, 1)
+    values = torch.arange(40, dtype=torch.float32).reshape(1, 10,
+                                                           4).repeat(2, 1, 1)
     valid_lens = torch.tensor([2, 6])
 
-    attention1 = AdditiveAttention(key_size=2, query_size=20, num_hiddens=8, dropout=0)
+    attention1 = AdditiveAttention(key_size=2,
+                                   query_size=20,
+                                   num_hiddens=8,
+                                   dropout=0)
     res = attention1(queries, keys, values, valid_lens)
     print(res.shape)  # torch.Size([2, 1, 4])
 
@@ -277,9 +273,8 @@ if __name__ == "__main__":
 
     # D2l.ai  MultiHeadAttentionD2L
     num_hiddens, num_heads = 100, 5
-    attention3 = MultiHeadAttention(
-        num_hiddens, num_hiddens, num_hiddens, num_hiddens, num_heads, 0.5
-    )
+    attention3 = MultiHeadAttention(num_hiddens, num_hiddens, num_hiddens,
+                                    num_hiddens, num_heads, 0.5)
     batch_size = 2
     num_queries = 4
     num_kvpairs = 6
