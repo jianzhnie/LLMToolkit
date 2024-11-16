@@ -3,7 +3,7 @@ import sys
 import torch
 import torch.nn as nn
 
-sys.path.append("../../")
+sys.path.append('../../')
 from llmtoolkit.data.embeddings import PositionalEncoding
 from llmtoolkit.llms.vanilla import Transformer
 
