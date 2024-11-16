@@ -1,5 +1,4 @@
-"""
-GPT-2 Tokenizer Implementation
+"""GPT-2 Tokenizer Implementation.
 
 This module implements the GPT-2 tokenizer using Byte-Pair Encoding (BPE).
 It provides functionality to encode text into tokens and decode tokens back to text,
@@ -13,13 +12,14 @@ Main components:
 """
 
 import json
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
+from typing import Dict, List, Set, Tuple, Union
+
 import regex as re
 import requests
-from typing import Dict, List, Set, Tuple, Union
-from pathlib import Path
 from tqdm import tqdm
-from functools import lru_cache
-from dataclasses import dataclass
 
 
 @dataclass
@@ -28,7 +28,7 @@ class TokenizerConfig:
 
     model_name: str
     models_dir: Union[str, Path]
-    errors: str = "replace"
+    errors: str = 'replace'
     cache_size: int = 128
 
 
@@ -38,17 +38,16 @@ class ByteEncoder:
     @staticmethod
     @lru_cache(maxsize=128)
     def bytes_to_unicode() -> Dict[int, str]:
-        """
-        Creates a mapping from bytes to unicode characters.
+        """Creates a mapping from bytes to unicode characters.
 
         Returns:
             Dict[int, str]: Mapping from byte values to unicode characters.
         """
         # Basic ASCII range (printable characters)
-        bs: List[int] = list(range(ord("!"), ord("~") + 1))
+        bs: List[int] = list(range(ord('!'), ord('~') + 1))
         # Latin-1 supplement block
-        bs.extend(list(range(ord("¡"), ord("¬") + 1)))
-        bs.extend(list(range(ord("®"), ord("ÿ") + 1)))
+        bs.extend(list(range(ord('¡'), ord('¬') + 1)))
+        bs.extend(list(range(ord('®'), ord('ÿ') + 1)))
 
         cs: List[int] = bs[:]
         n: int = 0
@@ -68,8 +67,7 @@ class TokenPairGenerator:
 
     @staticmethod
     def get_pairs(word: Tuple[str, ...]) -> Set[Tuple[str, str]]:
-        """
-        Generate adjacent pairs of characters from a word.
+        """Generate adjacent pairs of characters from a word.
 
         Args:
             word: Tuple of characters representing a word.
@@ -88,8 +86,7 @@ class TokenPairGenerator:
 
 
 class GPT2Tokenizer:
-    """
-    Main GPT-2 tokenizer implementation using Byte-Pair Encoding.
+    """Main GPT-2 tokenizer implementation using Byte-Pair Encoding.
 
     Attributes:
         encoder: Dictionary mapping tokens to IDs.
@@ -102,8 +99,7 @@ class GPT2Tokenizer:
     """
 
     def __init__(self, config: TokenizerConfig):
-        """
-        Initialize the tokenizer with the given configuration.
+        """Initialize the tokenizer with the given configuration.
 
         Args:
             config: TokenizerConfig instance with initialization parameters.
@@ -112,10 +108,11 @@ class GPT2Tokenizer:
             TokenizationError: If vocabulary files cannot be loaded.
         """
         try:
-            vocab_loader = VocabularyLoader(config.model_name, config.models_dir)
+            vocab_loader = VocabularyLoader(config.model_name,
+                                            config.models_dir)
             self.encoder, bpe_merges = vocab_loader.load_vocabulary()
         except Exception as e:
-            raise Exception(f"Failed to load vocabulary: {str(e)}")
+            raise Exception(f'Failed to load vocabulary: {str(e)}')
 
         self.decoder = {v: k for k, v in self.encoder.items()}
         self.errors = config.errors
@@ -138,8 +135,7 @@ class GPT2Tokenizer:
         )
 
     def bpe(self, token: str) -> str:
-        """
-        Apply Byte-Pair Encoding to a token.
+        """Apply Byte-Pair Encoding to a token.
 
         Args:
             token: Input token to encode.
@@ -157,7 +153,8 @@ class GPT2Tokenizer:
             return token
 
         while True:
-            bigram = min(pairs, key=lambda pair: self.bpe_ranks.get(pair, float("inf")))
+            bigram = min(
+                pairs, key=lambda pair: self.bpe_ranks.get(pair, float('inf')))
             if bigram not in self.bpe_ranks:
                 break
 
@@ -174,7 +171,8 @@ class GPT2Tokenizer:
                     new_word.extend(word[i:])
                     break
 
-                if word[i] == first and i < len(word) - 1 and word[i + 1] == second:
+                if word[i] == first and i < len(word) - 1 and word[
+                        i + 1] == second:
                     new_word.append(first + second)
                     i += 2
                 else:
@@ -187,13 +185,12 @@ class GPT2Tokenizer:
 
             pairs = TokenPairGenerator.get_pairs(word)
 
-        word = " ".join(word)
+        word = ' '.join(word)
         self.cache[token] = word
         return word
 
     def encode(self, text: str) -> List[int]:
-        """
-        Encode text into tokens.
+        """Encode text into tokens.
 
         Args:
             text: Input text to tokenize.
@@ -209,22 +206,23 @@ class GPT2Tokenizer:
 
             for token in re.findall(self.pattern, text):
                 # Convert token to byte-level representation
-                token = "".join(self.byte_encoder[b] for b in token.encode("utf-8"))
+                token = ''.join(self.byte_encoder[b]
+                                for b in token.encode('utf-8'))
 
                 # Apply BPE and convert to token IDs
                 bpe_token_ids = [
-                    self.encoder[bpe_token] for bpe_token in self.bpe(token).split(" ")
+                    self.encoder[bpe_token]
+                    for bpe_token in self.bpe(token).split(' ')
                 ]
                 bpe_tokens.extend(bpe_token_ids)
 
             return bpe_tokens
 
         except Exception as e:
-            raise Exception(f"Failed to encode text: {str(e)}")
+            raise Exception(f'Failed to encode text: {str(e)}')
 
     def decode(self, tokens: List[int]) -> str:
-        """
-        Decode tokens back to text.
+        """Decode tokens back to text.
 
         Args:
             tokens: List of token IDs to decode.
@@ -237,22 +235,21 @@ class GPT2Tokenizer:
         """
         try:
             # Convert token IDs back to text
-            text = "".join(self.decoder[token] for token in tokens)
+            text = ''.join(self.decoder[token] for token in tokens)
 
             # Convert byte-level representation back to UTF-8 text
             decoded_bytes = bytearray(self.byte_decoder[c] for c in text)
-            return decoded_bytes.decode("utf-8", errors=self.errors)
+            return decoded_bytes.decode('utf-8', errors=self.errors)
 
         except Exception as e:
-            raise Exception(f"Failed to decode tokens: {str(e)}")
+            raise Exception(f'Failed to decode tokens: {str(e)}')
 
 
 class VocabularyLoader:
     """Handles loading and downloading of tokenizer vocabulary files."""
 
     def __init__(self, model_name: str, models_dir: Union[str, Path]):
-        """
-        Initialize the vocabulary loader.
+        """Initialize the vocabulary loader.
 
         Args:
             model_name: Name of the model.
@@ -261,13 +258,12 @@ class VocabularyLoader:
         self.model_name = model_name
         self.models_dir = Path(models_dir)
         self.vocab_files = {
-            "encoder": self.models_dir / model_name / "encoder.json",
-            "vocab": self.models_dir / model_name / "vocab.bpe",
+            'encoder': self.models_dir / model_name / 'encoder.json',
+            'vocab': self.models_dir / model_name / 'vocab.bpe',
         }
 
     def load_vocabulary(self) -> Tuple[Dict[str, int], List[Tuple[str, str]]]:
-        """
-        Load vocabulary files.
+        """Load vocabulary files.
 
         Returns:
             Tuple of encoder dictionary and BPE merges.
@@ -277,32 +273,30 @@ class VocabularyLoader:
         """
         # Load encoder
         try:
-            with open(self.vocab_files["encoder"], "r") as f:
+            with open(self.vocab_files['encoder'], 'r') as f:
                 encoder = json.load(f)
         except FileNotFoundError:
             raise FileNotFoundError(
-                f"Encoder file not found at {self.vocab_files['encoder']}"
-            )
+                f"Encoder file not found at {self.vocab_files['encoder']}")
 
         # Load BPE vocabulary
         try:
-            with open(self.vocab_files["vocab"], "r", encoding="utf-8") as f:
+            with open(self.vocab_files['vocab'], 'r', encoding='utf-8') as f:
                 bpe_data = f.read()
         except FileNotFoundError:
             raise FileNotFoundError(
-                f"Vocabulary file not found at {self.vocab_files['vocab']}"
-            )
+                f"Vocabulary file not found at {self.vocab_files['vocab']}")
 
         # Parse BPE merges
         bpe_merges = [
-            tuple(merge_str.split()) for merge_str in bpe_data.split("\n")[1:-1]
+            tuple(merge_str.split())
+            for merge_str in bpe_data.split('\n')[1:-1]
         ]
 
         return encoder, bpe_merges
 
     def download_vocabulary(self, force: bool = False) -> None:
-        """
-        Download vocabulary files from OpenAI's servers.
+        """Download vocabulary files from OpenAI's servers.
 
         Args:
             force: If True, download files even if they exist.
@@ -314,9 +308,9 @@ class VocabularyLoader:
         vocab_dir = self.models_dir / self.model_name
         vocab_dir.mkdir(parents=True, exist_ok=True)
 
-        base_url = "https://openaipublic.blob.core.windows.net/gpt-2/models/117M/"
+        base_url = 'https://openaipublic.blob.core.windows.net/gpt-2/models/117M/'
 
-        for filename in ["encoder.json", "vocab.bpe"]:
+        for filename in ['encoder.json', 'vocab.bpe']:
             file_path = vocab_dir / filename
 
             if not force and file_path.exists():
@@ -327,26 +321,25 @@ class VocabularyLoader:
             response.raise_for_status()
 
             # Save file with progress bar
-            file_size = int(response.headers["content-length"])
+            file_size = int(response.headers['content-length'])
             chunk_size = 1000
 
-            with open(file_path, "wb") as f:
+            with open(file_path, 'wb') as f:
                 with tqdm(
-                    ncols=100,
-                    desc=f"Downloading {filename}",
-                    total=file_size,
-                    unit_scale=True,
+                        ncols=100,
+                        desc=f'Downloading {filename}',
+                        total=file_size,
+                        unit_scale=True,
                 ) as pbar:
                     for chunk in response.iter_content(chunk_size=chunk_size):
                         f.write(chunk)
                         pbar.update(len(chunk))
 
 
-def create_tokenizer(
-    model_name: str, models_dir: Union[str, Path], download_if_missing: bool = True
-) -> GPT2Tokenizer:
-    """
-    Factory function to create a GPT2Tokenizer instance.
+def create_tokenizer(model_name: str,
+                     models_dir: Union[str, Path],
+                     download_if_missing: bool = True) -> GPT2Tokenizer:
+    """Factory function to create a GPT2Tokenizer instance.
 
     Args:
         model_name: Name of the model.
@@ -369,4 +362,4 @@ def create_tokenizer(
         return GPT2Tokenizer(config)
 
     except Exception as e:
-        raise Exception(f"Failed to create tokenizer: {str(e)}")
+        raise Exception(f'Failed to create tokenizer: {str(e)}')
