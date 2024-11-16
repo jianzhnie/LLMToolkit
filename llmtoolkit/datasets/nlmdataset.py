@@ -18,24 +18,20 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset
 from tqdm.auto import tqdm
 
-sys.path.append("../../")
+sys.path.append('../../')
 from llmtoolkit.data.vocab import Vocab
-from llmtoolkit.utils.data_utils import (
-    BOS_TOKEN,
-    EOS_TOKEN,
-    PAD_TOKEN,
-    UNK_TOKEN,
-    load_ptb_data,
-)
+from llmtoolkit.utils.data_utils import (BOS_TOKEN, EOS_TOKEN, PAD_TOKEN,
+                                         UNK_TOKEN, load_ptb_data)
 
 
 class RNNlmDataset(Dataset):
+
     def __init__(self, corpus, vocab):
         self.data = []
         self.bos = vocab[BOS_TOKEN]
         self.eos = vocab[EOS_TOKEN]
         self.pad = vocab[PAD_TOKEN]
-        for sentence in tqdm(corpus, desc="Dataset Construction"):
+        for sentence in tqdm(corpus, desc='Dataset Construction'):
             # 模型输入：BOS_TOKEN, w_1, w_2, ..., w_n
             input = [self.bos] + sentence
             # 模型输出：w_1, w_2, ..., w_n, EOS_TOKEN
@@ -54,23 +50,26 @@ class RNNlmDataset(Dataset):
         targets = [torch.tensor(ex[1]) for ex in examples]
         # 对batch内的样本进行padding，使其具有相同长度
         inputs = pad_sequence(inputs, batch_first=True, padding_value=self.pad)
-        targets = pad_sequence(targets, batch_first=True, padding_value=self.pad)
+        targets = pad_sequence(targets,
+                               batch_first=True,
+                               padding_value=self.pad)
         return (inputs, targets)
 
 
 class NGramDataset(Dataset):
+
     def __init__(self, corpus, vocab: Vocab, context_size=2):
         self.data = []
         self.bos = vocab.bos_token
         self.eos = vocab.eos_token
-        for sentence in tqdm(corpus, desc="Dataset Construction"):
+        for sentence in tqdm(corpus, desc='Dataset Construction'):
             # 插入句首句尾符号
             sentence = [self.bos] + sentence + [self.eos]
             if len(sentence) < context_size:
                 continue
             for i in range(context_size, len(sentence)):
                 # 模型输入：长为context_size的上文
-                context = sentence[i - context_size : i]
+                context = sentence[i - context_size:i]
                 context = vocab.to_index(context)
                 # 模型输出：当前词
                 target = sentence[i]
@@ -91,20 +90,19 @@ class NGramDataset(Dataset):
 
 
 class CbowDataset(Dataset):
+
     def __init__(self, corpus, vocab: Vocab, context_size=2):
         self.data = []
         self.bos = vocab.bos_token
         self.eos = vocab.eos_token
-        for sentence in tqdm(corpus, desc="Dataset Construction"):
+        for sentence in tqdm(corpus, desc='Dataset Construction'):
             sentence = [self.bos] + sentence + [self.eos]
             if len(sentence) < context_size * 2 + 1:
                 continue
             for i in range(context_size, len(sentence) - context_size):
                 # 模型输入：左右分别取context_size长度的上下文
-                context = (
-                    sentence[(i - context_size) : i]
-                    + sentence[(i + 1) : (i + context_size + 1)]
-                )
+                context = (sentence[(i - context_size):i] +
+                           sentence[(i + 1):(i + context_size + 1)])
                 # 模型输出：当前词
                 target = sentence[i]
                 self.data.append((context, target))
@@ -122,11 +120,12 @@ class CbowDataset(Dataset):
 
 
 class SkipGramDataset(Dataset):
+
     def __init__(self, corpus, vocab, context_size=2):
         self.data = []
         self.bos = vocab[BOS_TOKEN]
         self.eos = vocab[EOS_TOKEN]
-        for sentence in tqdm(corpus, desc="Dataset Construction"):
+        for sentence in tqdm(corpus, desc='Dataset Construction'):
             sentence = [self.bos] + sentence + [self.eos]
             for i in range(1, len(sentence) - 1):
                 # 模型输入：当前词
@@ -135,10 +134,8 @@ class SkipGramDataset(Dataset):
                 # 模型输出：一定窗口大小内的上下文
                 left_context_index = max(0, i - context_size)
                 right_context_index = min(len(sentence), i + context_size)
-                context = (
-                    sentence[left_context_index:i]
-                    + sentence[(i + 1) : (right_context_index + 1)]
-                )
+                context = (sentence[left_context_index:i] +
+                           sentence[(i + 1):(right_context_index + 1)])
                 context = vocab.to_index(context)
                 self.data.extend([(w, c) for c in context])
 
@@ -157,14 +154,17 @@ class SkipGramDataset(Dataset):
 class NegativeSampleingSkipGramDataset(Dataset):
     """Negative Sampleing for Skip-Gram Dataset."""
 
-    def __init__(
-        self, corpus, vocab: Vocab, context_size=2, n_negatives=5, ns_dist=None
-    ):
+    def __init__(self,
+                 corpus,
+                 vocab: Vocab,
+                 context_size=2,
+                 n_negatives=5,
+                 ns_dist=None):
         self.data = []
         self.bos = vocab.bos_token
         self.eos = vocab.eos_token
         self.pad = vocab.pad_token
-        for sentence in tqdm(corpus, desc="Dataset Construction"):
+        for sentence in tqdm(corpus, desc='Dataset Construction'):
             sentence = [self.bos] + sentence + [self.eos]
             for i in range(1, len(sentence) - 1):
                 # 模型输入：(w, context) ；输出为0/1，表示context是否为负样本
@@ -172,10 +172,8 @@ class NegativeSampleingSkipGramDataset(Dataset):
                 w = vocab.to_index(w)
                 left_context_index = max(0, i - context_size)
                 right_context_index = min(len(sentence), i + context_size)
-                context = (
-                    sentence[left_context_index:i]
-                    + sentence[(i + 1) : (right_context_index + 1)]
-                )
+                context = (sentence[left_context_index:i] +
+                           sentence[(i + 1):(right_context_index + 1)])
                 context += [self.pad] * (2 * context_size - len(context))
                 context = vocab.to_index(context)
                 self.data.append((w, context))
@@ -183,7 +181,8 @@ class NegativeSampleingSkipGramDataset(Dataset):
         # 负样本数量
         self.n_negatives = n_negatives
         # 负采样分布：若参数ns_dist为None，则使用uniform分布
-        self.ns_dist = ns_dist if ns_dist is not None else torch.ones(len(vocab))
+        self.ns_dist = ns_dist if ns_dist is not None else torch.ones(
+            len(vocab))
 
     def __len__(self):
         return len(self.data)
@@ -201,30 +200,29 @@ class NegativeSampleingSkipGramDataset(Dataset):
             # 保证负样本不包含当前样本中的context
             ns_dist = self.ns_dist.index_fill(0, contexts[i], 0.0)
             neg_contexts.append(
-                torch.multinomial(
-                    ns_dist, self.n_negatives * context_size, replacement=True
-                )
-            )
+                torch.multinomial(ns_dist,
+                                  self.n_negatives * context_size,
+                                  replacement=True))
         neg_contexts = torch.stack(neg_contexts, dim=0)
         return words, contexts, neg_contexts
 
 
 class GloveDataset(Dataset):
+
     def __init__(self, corpus, vocab: Vocab, context_size=2):
         # 记录词与上下文在给定语料中的共现次数
         self.cooccur_counts = defaultdict(float)
         self.bos = vocab.bos_token
         self.eos = vocab.eos_token
-        for sentence in tqdm(corpus, desc="Dataset Construction"):
+        for sentence in tqdm(corpus, desc='Dataset Construction'):
             sentence = [self.bos] + sentence + [self.eos]
             for i in range(1, len(sentence) - 1):
                 word = sentence[i]
                 word = vocab.to_index(word)
-                left_contexts = sentence[max(0, i - context_size) : i]
+                left_contexts = sentence[max(0, i - context_size):i]
                 left_contexts = vocab.to_index(left_contexts)
-                right_contexts = sentence[
-                    (i + 1) : (min(len(sentence), i + context_size) + 1)
-                ]
+                right_contexts = sentence[(i + 1):(
+                    min(len(sentence), i + context_size) + 1)]
                 right_contexts = vocab.to_index(right_contexts)
                 # 共现次数随距离衰减: 1/d(w, c)
                 for k, contexts_words in enumerate(left_contexts[::-1]):
@@ -313,10 +311,10 @@ class Word2VecDataset(object):
             List[List[str]]: List of sentences with subsampled words.
         """
         num_tokens = sum(self.word_counter.values())
-        self.subsampled_datasets = [
-            [token for token in line if self.should_keep_token(token, num_tokens)]
-            for line in self.sentences
-        ]
+        self.subsampled_datasets = [[
+            token for token in line
+            if self.should_keep_token(token, num_tokens)
+        ] for line in self.sentences]
         return self.subsampled_datasets
 
     def get_word_frequency(self, token: str) -> Tuple[int, int]:
@@ -328,10 +326,10 @@ class Word2VecDataset(object):
         Returns:
             Tuple[int, int]: The original and subsampled frequency counts of the token.
         """
-        origin_count = sum([sentence.count(token) for sentence in self.sentences])
+        origin_count = sum(
+            [sentence.count(token) for sentence in self.sentences])
         subsampled_count = sum(
-            [sentence.count(token) for sentence in self.subsampled_datasets]
-        )
+            [sentence.count(token) for sentence in self.subsampled_datasets])
 
         return origin_count, subsampled_count
 
@@ -340,14 +338,15 @@ class Word2VecDataset(object):
         total_words = len(self.vocab)
         population = list(range(num_words, total_words))
         weights = [
-            word_counter[self.vocab.to_tokens(idx)] ** ratio for idx in population
+            word_counter[self.vocab.to_tokens(idx)]**ratio
+            for idx in population
         ]
         generator = RandomGenerator(population, weights)
         return generator
 
-    def get_negative_sample(
-        self, contexts: List[str], n_negatives: int = 5
-    ) -> List[List[str]]:
+    def get_negative_sample(self,
+                            contexts: List[str],
+                            n_negatives: int = 5) -> List[List[str]]:
         """Generate negative samples for Skipgram datasets.
 
         Args:
@@ -365,9 +364,9 @@ class Word2VecDataset(object):
                 negatives.append(negative_word)
         return negatives
 
-    def get_negative_datasets(
-        self, all_contexts: List[List[str]], n_negatives: int = 5
-    ) -> List[List[str]]:
+    def get_negative_datasets(self,
+                              all_contexts: List[List[str]],
+                              n_negatives: int = 5) -> List[List[str]]:
         """Generate negative samples for Skipgram datasets.
 
         Args:
@@ -379,12 +378,14 @@ class Word2VecDataset(object):
         """
         all_negatives = []
         for context in all_contexts:
-            all_negatives.append(self.get_negative_sample(context, n_negatives))
+            all_negatives.append(self.get_negative_sample(
+                context, n_negatives))
         return all_negatives
 
     def get_skipgram_datasets(
-        self, sentences, context_size: int = 2
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+            self,
+            sentences,
+            context_size: int = 2) -> Tuple[List[List[str]], List[List[str]]]:
         """Generate Skipgram datasets.
 
         Args:
@@ -397,15 +398,16 @@ class Word2VecDataset(object):
         for sentence in sentences:
             if len(sentence) < 2:
                 continue
-            skipgram_data = self.generate_skipgram_sample(sentence, context_size)
+            skipgram_data = self.generate_skipgram_sample(
+                sentence, context_size)
             center, context = zip(*skipgram_data)
             centers.append(center)
             contexts.append(context)
         return centers, contexts
 
     def generate_ngram_sample(
-        self, sentence: List[str], context_size: int
-    ) -> List[Tuple[List[str], str]]:
+            self, sentence: List[str],
+            context_size: int) -> List[Tuple[List[str], str]]:
         """Generate an n-gram dataset from a given sentence.
 
         Args:
@@ -429,15 +431,17 @@ class Word2VecDataset(object):
 
         for i in range(context_size, sentence_length):
             # Construct the context for the current n-gram
-            context = sentence[i - context_size : i]
+            context = sentence[i - context_size:i]
             target = sentence[i]
             ngram_data.append((context, target))
 
         return ngram_data
 
     def generate_cbow_sample(
-        self, sentence: List[str], context_size: int, use_random_window: bool = True
-    ) -> List[Tuple[List[str], str]]:
+            self,
+            sentence: List[str],
+            context_size: int,
+            use_random_window: bool = True) -> List[Tuple[List[str], str]]:
         """Generate a CBOW (Continuous Bag of Words) dataset from a given
         sentence.
 
@@ -465,9 +469,8 @@ class Word2VecDataset(object):
         if sentence_length < 2:
             return []
         for i in range(sentence_length):
-            window_size = (
-                random.randint(1, context_size) if use_random_window else context_size
-            )
+            window_size = (random.randint(1, context_size)
+                           if use_random_window else context_size)
 
             # Determine the context word indices within the window
             left_idx = max(0, i - window_size)
@@ -485,7 +488,10 @@ class Word2VecDataset(object):
         return cbow_data
 
     def generate_skipgram_sample(
-        self, sentence: List[str], context_size: int, use_random_window: bool = True
+            self,
+            sentence: List[str],
+            context_size: int,
+            use_random_window: bool = True
     ) -> Tuple[List[str], List[List[str]]]:
         """Generate an Skip-gram dataset from a given sentence.
         返回跳元模型中的中心词和上下文词.
@@ -535,9 +541,8 @@ class Word2VecDataset(object):
             return []
 
         for i in range(sentence_length):
-            window_size = (
-                random.randint(1, context_size) if use_random_window else context_size
-            )
+            window_size = (random.randint(1, context_size)
+                           if use_random_window else context_size)
 
             # Determine the context word indices within the window
             left_idx = max(0, i - window_size)
@@ -569,7 +574,9 @@ class RandomGenerator:
         >>> sample = [generator.draw() for _ in range(10)]
     """
 
-    def __init__(self, population: List[int] = None, weights: List[float] = None):
+    def __init__(self,
+                 population: List[int] = None,
+                 weights: List[float] = None):
         self.population = population
         self.weights = weights
         self.candidates = []
@@ -583,21 +590,23 @@ class RandomGenerator:
         """
         if self.i == len(self.candidates):
             # Cache k random samples
-            self.candidates = random.choices(self.population, self.weights, k=10000)
+            self.candidates = random.choices(self.population,
+                                             self.weights,
+                                             k=10000)
             self.i = 0
         self.i += 1
         return self.candidates[self.i - 1]
 
 
 # Example usage:
-if __name__ == "__main__":
+if __name__ == '__main__':
     generator = RandomGenerator(
-        population=["apple", "banana", "cherry", "date"], weights=[0.2, 0.3, 0.4, 0.1]
-    )
+        population=['apple', 'banana', 'cherry', 'date'],
+        weights=[0.2, 0.3, 0.4, 0.1])
     sample = [generator.draw() for _ in range(10)]
-    print(f"Randomly sampled value: {sample}")
+    print(f'Randomly sampled value: {sample}')
 
-    corpus = ["I", "love", "to", "eat", "ice", "cream"]
+    corpus = ['I', 'love', 'to', 'eat', 'ice', 'cream']
     print(corpus)
     context_size = 2
 
@@ -612,15 +621,16 @@ if __name__ == "__main__":
     skip = word2vec_dataset.generate_skipgram_sample(corpus, context_size)
     print(skip)
 
-    data_dir = "/home/robin/work_dir/llm/nlp-toolkit/data/ptb"
-    sentences = load_ptb_data(data_dir, split="train")
+    data_dir = '/home/robin/work_dir/llm/nlp-toolkit/data/ptb'
+    sentences = load_ptb_data(data_dir, split='train')
 
     word2vec_dataset = Word2VecDataset(sentences)
     subsample = word2vec_dataset.get_subsampled_datasets()
-    a, b = word2vec_dataset.get_word_frequency("the")
+    a, b = word2vec_dataset.get_word_frequency('the')
     print(a, b)
 
-    all_centers, all_contexts = word2vec_dataset.get_skipgram_datasets(sentences)
+    all_centers, all_contexts = word2vec_dataset.get_skipgram_datasets(
+        sentences)
 
     print(all_centers[:5], all_contexts[:5])
     all_negativaes = word2vec_dataset.get_negative_datasets(all_contexts)
