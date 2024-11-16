@@ -122,13 +122,14 @@ class Tokenizer(BaseTokenizer):
     """
 
     # Class-level regex patterns for better performance
-    _special_chars_pattern = re.compile(r"[\*\"" "\n\\…\+\-\/\=\(\)'•:\|'\!;]")
-    _whitespace_pattern = re.compile(r"[ ]+")
+    _special_chars_pattern = re.compile(r"[\*\""
+                                        "\n\\…\+\-\/\=\(\)'•:\|'\!;]")
+    _whitespace_pattern = re.compile(r'[ ]+')
     _punctuation_patterns = {
-        "exclamation": re.compile(r"\!+"),
-        "comma": re.compile(r"\,+"),
-        "question": re.compile(r"\?+"),
-        "non_alpha": re.compile(r"[^A-Za-z]+"),
+        'exclamation': re.compile(r'\!+'),
+        'comma': re.compile(r'\,+'),
+        'question': re.compile(r'\?+'),
+        'non_alpha': re.compile(r'[^A-Za-z]+'),
     }
 
     def __init__(self, vocab: Vocab) -> None:
@@ -151,26 +152,27 @@ class Tokenizer(BaseTokenizer):
         # 将句子中的特殊字符（如星号、引号、换行符、反斜杠、加号、减号、斜杠、等号、括号、单引号、冒号、方括号、竖线、感叹号和分号）
         # 替换为一个空格。
         # Replace special characters with space
-        text = self._special_chars_pattern.sub(" ", str(text))
+        text = self._special_chars_pattern.sub(' ', str(text))
 
         # Normalize whitespace
         # 将连续多个空格替换为一个空格。这有助于将多个连续空格合并成一个。
-        text = self._whitespace_pattern.sub(" ", text)
+        text = self._whitespace_pattern.sub(' ', text)
 
         # Normalize punctuation
-        text = self._punctuation_patterns["exclamation"].sub("!", text)
-        text = self._punctuation_patterns["comma"].sub(",", text)
-        text = self._punctuation_patterns["question"].sub("?", text)
+        text = self._punctuation_patterns['exclamation'].sub('!', text)
+        text = self._punctuation_patterns['comma'].sub(',', text)
+        text = self._punctuation_patterns['question'].sub('?', text)
 
         # Replace non-alphabetic characters with space
-        text = self._punctuation_patterns["non_alpha"].sub(" ", text)
+        text = self._punctuation_patterns['non_alpha'].sub(' ', text)
 
         # Convert to lowercase
         return text.lower().strip()
 
     def tokenize(
-        self, sentence: str, token_type: str = "word"
-    ) -> Union[List[str], List[List[str]]]:
+            self,
+            sentence: str,
+            token_type: str = 'word') -> Union[List[str], List[List[str]]]:
         """Tokenize text into word or character tokens.
 
         Args:
@@ -185,20 +187,19 @@ class Tokenizer(BaseTokenizer):
             ValueError: If token_type is not 'word' or 'char'
         """
         if not isinstance(sentence, str):
-            raise TypeError(f"Expected string input, got {type(sentence)}")
+            raise TypeError(f'Expected string input, got {type(sentence)}')
 
         # Preprocess the text
         processed_text = self.preprocess_text(sentence)
 
         # Tokenize based on specified type
-        if token_type == "word":
+        if token_type == 'word':
             return processed_text.split()
-        elif token_type == "char":
+        elif token_type == 'char':
             return [list(word) for word in processed_text.split()]
         else:
             raise ValueError(
-                f"Unknown token type: {token_type}. Expected 'word' or 'char'"
-            )
+                f"Unknown token type: {token_type}. Expected 'word' or 'char'")
 
     def cut(self, sentence: str) -> List[str]:
         """Cut text into word tokens.
@@ -209,7 +210,7 @@ class Tokenizer(BaseTokenizer):
         Returns:
             List of word tokens
         """
-        return self.tokenize(sentence, token_type="word")
+        return self.tokenize(sentence, token_type='word')
 
     def encode(self, sentence: str) -> List[int]:
         """Convert text into token indices.
@@ -233,7 +234,7 @@ class Tokenizer(BaseTokenizer):
             Reconstructed text
         """
         tokens = self.vocab.to_tokens(ids)
-        return " ".join(tokens)
+        return ' '.join(tokens)
 
 
 class JiebaTokenizer(BaseTokenizer):
@@ -252,7 +253,10 @@ class JiebaTokenizer(BaseTokenizer):
 
         self.tokenizer = jieba.Tokenizer()
         # initialize tokenizer
-        self.tokenizer.FREQ = {key: 1 for key in self.vocab.token_to_idx.keys()}
+        self.tokenizer.FREQ = {
+            key: 1
+            for key in self.vocab.token_to_idx.keys()
+        }
         self.tokenizer.total = len(self.tokenizer.FREQ)
         self.tokenizer.initialized = True
 
@@ -342,6 +346,6 @@ class JiebaTokenizer(BaseTokenizer):
             Reconstructed text
         """
         if not ids:
-            raise ValueError("Token IDs list cannot be empty")
+            raise ValueError('Token IDs list cannot be empty')
         tokens = self.vocab.to_tokens(ids)
-        return " ".join(tokens)
+        return ' '.join(tokens)
