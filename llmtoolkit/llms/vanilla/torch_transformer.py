@@ -14,20 +14,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
-from torch.nn import (
-    Dropout,
-    LayerNorm,
-    Linear,
-    Module,
-    MultiheadAttention,
-    TransformerEncoder,
-)
+from torch.nn import (Dropout, LayerNorm, Linear, Module, MultiheadAttention,
+                      TransformerEncoder)
 
-from llmtoolkit.data.embeddings import (
-    PositionalEmbedding,
-    PositionalEncoding,
-    TokenEmbedding,
-)
+from llmtoolkit.data.embeddings import (PositionalEmbedding,
+                                        PositionalEncoding, TokenEmbedding)
 
 
 def _get_activation_fn(activation: str):
@@ -39,9 +30,9 @@ def _get_activation_fn(activation: str):
     Returns:
         Callable: Activation function.
     """
-    if activation == "relu":
+    if activation == 'relu':
         return F.relu
-    elif activation == "gelu":
+    elif activation == 'gelu':
         return F.gelu
     else:
         raise ValueError(
@@ -51,7 +42,7 @@ def _get_activation_fn(activation: str):
 
 def generate_square_subsequent_mask(sz: int) -> Tensor:
     """Generates an upper-triangular matrix of -inf, with zeros on diag."""
-    return torch.triu(torch.ones(sz, sz) * float("-inf"), diagonal=1)
+    return torch.triu(torch.ones(sz, sz) * float('-inf'), diagonal=1)
 
 
 class TransformerEncoderLayer(Module):
@@ -75,9 +66,12 @@ class TransformerEncoderLayer(Module):
         >>> out = encoder_layer(src)
     """
 
-    def __init__(
-        self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu"
-    ):
+    def __init__(self,
+                 d_model,
+                 nhead,
+                 dim_feedforward=2048,
+                 dropout=0.1,
+                 activation='relu'):
         super(TransformerEncoderLayer, self).__init__()
         self.self_attn = MultiheadAttention(d_model, nhead, dropout=dropout)
         # Implementation of Feedforward model
@@ -93,8 +87,8 @@ class TransformerEncoderLayer(Module):
         self.activation = _get_activation_fn(activation)
 
     def __setstate__(self, state):
-        if "activation" not in state:
-            state["activation"] = F.relu
+        if 'activation' not in state:
+            state['activation'] = F.relu
         super(TransformerEncoderLayer, self).__setstate__(state)
 
     def forward(
@@ -113,9 +107,11 @@ class TransformerEncoderLayer(Module):
         Shape:
             see the docs in Transformer class.
         """
-        src2 = self.self_attn(
-            src, src, src, attn_mask=src_mask, key_padding_mask=src_key_padding_mask
-        )[0]
+        src2 = self.self_attn(src,
+                              src,
+                              src,
+                              attn_mask=src_mask,
+                              key_padding_mask=src_key_padding_mask)[0]
         src = src + self.dropout1(src2)
         src = self.norm1(src)
         src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
@@ -146,12 +142,17 @@ class TransformerDecoderLayer(Module):
         >>> out = decoder_layer(tgt, memory)
     """
 
-    def __init__(
-        self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu"
-    ):
+    def __init__(self,
+                 d_model,
+                 nhead,
+                 dim_feedforward=2048,
+                 dropout=0.1,
+                 activation='relu'):
         super(TransformerDecoderLayer, self).__init__()
         self.self_attn = MultiheadAttention(d_model, nhead, dropout=dropout)
-        self.multihead_attn = MultiheadAttention(d_model, nhead, dropout=dropout)
+        self.multihead_attn = MultiheadAttention(d_model,
+                                                 nhead,
+                                                 dropout=dropout)
         # Implementation of Feedforward model
         self.linear1 = Linear(d_model, dim_feedforward)
         self.dropout = Dropout(dropout)
@@ -167,8 +168,8 @@ class TransformerDecoderLayer(Module):
         self.activation = _get_activation_fn(activation)
 
     def __setstate__(self, state):
-        if "activation" not in state:
-            state["activation"] = F.relu
+        if 'activation' not in state:
+            state['activation'] = F.relu
         super(TransformerDecoderLayer, self).__setstate__(state)
 
     def forward(
@@ -193,9 +194,11 @@ class TransformerDecoderLayer(Module):
         Shape:
             see the docs in Transformer class.
         """
-        tgt2 = self.self_attn(
-            tgt, tgt, tgt, attn_mask=tgt_mask, key_padding_mask=tgt_key_padding_mask
-        )[0]
+        tgt2 = self.self_attn(tgt,
+                              tgt,
+                              tgt,
+                              attn_mask=tgt_mask,
+                              key_padding_mask=tgt_key_padding_mask)[0]
         tgt = tgt + self.dropout1(tgt2)
         tgt = self.norm1(tgt)
         tgt2 = self.multihead_attn(
@@ -236,9 +239,10 @@ class TransformerEncoderModel(nn.Module):
         dropout: float = 0.5,
     ):
         super().__init__()
-        self.model_type = "Transformer"
+        self.model_type = 'Transformer'
         self.pos_encoder = PositionalEncoding(d_model, dropout)
-        encoder_layers = TransformerEncoderLayer(d_model, nhead, d_ffn, dropout)
+        encoder_layers = TransformerEncoderLayer(d_model, nhead, d_ffn,
+                                                 dropout)
         self.transformer_encoder = TransformerEncoder(encoder_layers, nlayers)
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.d_model = d_model
@@ -322,19 +326,15 @@ class TransformerModel(nn.Module):
         self.eos_id = eos_id
         self.dropout = dropout
 
-        self.src_word_embedding = TokenEmbedding(
-            vocab_size=src_vocab_size, emb_dim=d_model
-        )
-        self.src_pos_embedding = PositionalEmbedding(
-            emb_dim=d_model, max_length=max_length
-        )
+        self.src_word_embedding = TokenEmbedding(vocab_size=src_vocab_size,
+                                                 emb_dim=d_model)
+        self.src_pos_embedding = PositionalEmbedding(emb_dim=d_model,
+                                                     max_length=max_length)
 
-        self.tgt_word_embedding = TokenEmbedding(
-            vocab_size=tgt_vocab_size, emb_dim=d_model
-        )
-        self.tgt_pos_embedding = PositionalEmbedding(
-            emb_dim=d_model, max_length=max_length
-        )
+        self.tgt_word_embedding = TokenEmbedding(vocab_size=tgt_vocab_size,
+                                                 emb_dim=d_model)
+        self.tgt_pos_embedding = PositionalEmbedding(emb_dim=d_model,
+                                                     max_length=max_length)
 
         self.transformer = nn.Transformer(
             d_model=d_model,
@@ -343,7 +343,7 @@ class TransformerModel(nn.Module):
             num_decoder_layers=num_decoder_layers,
             dim_feedforward=dim_feedforward,
             dropout=dropout,
-            activation="relu",
+            activation='relu',
         )
 
         self.linear = nn.Linear(d_model, tgt_vocab_size, bias=False)
@@ -372,42 +372,33 @@ class TransformerModel(nn.Module):
         src_max_len = src_word.shape[-1]
         tgt_max_len = tgt_word.shape[-1]
         src_slf_attn_mask = (
-            torch.cast(
-                src_word == self.bos_id, dtype=torch.get_default_dtype()
-            ).unsqueeze([1, 2])
-            * -1e4
-        )
+            torch.cast(src_word == self.bos_id,
+                       dtype=torch.get_default_dtype()).unsqueeze([1, 2]) *
+            -1e4)
         src_slf_attn_mask.stop_gradient = True
         tgt_slf_attn_mask = self.transformer.generate_square_subsequent_mask(
-            tgt_max_len
-        )
+            tgt_max_len)
         tgt_slf_attn_mask.stop_gradient = True
         tgt_src_attn_bias = src_slf_attn_mask
 
         src_pos = torch.cast(
-            src_word != self.bos_id, dtype=src_word.dtype
-        ) * torch.arange(start=0, end=src_max_len, dtype=src_word.dtype)
+            src_word != self.bos_id, dtype=src_word.dtype) * torch.arange(
+                start=0, end=src_max_len, dtype=src_word.dtype)
         tgt_pos = torch.cast(
-            tgt_word != self.bos_id, dtype=src_word.dtype
-        ) * torch.arange(start=0, end=tgt_max_len, dtype=tgt_word.dtype)
+            tgt_word != self.bos_id, dtype=src_word.dtype) * torch.arange(
+                start=0, end=tgt_max_len, dtype=tgt_word.dtype)
 
         src_word_emb = self.src_word_embedding(src_word)
         src_pos_emb = self.src_pos_embedding(src_pos)
         src_emb = src_word_emb + src_pos_emb
-        enc_input = (
-            F.dropout(src_emb, p=self.dropout, training=self.training)
-            if self.dropout
-            else src_emb
-        )
+        enc_input = (F.dropout(src_emb, p=self.dropout, training=self.training)
+                     if self.dropout else src_emb)
 
         tgt_word_emb = self.tgt_word_embedding(tgt_word)
         tgt_pos_emb = self.tgt_pos_embedding(tgt_pos)
         tgt_emb = tgt_word_emb + tgt_pos_emb
-        dec_input = (
-            F.dropout(tgt_emb, p=self.dropout, training=self.training)
-            if self.dropout
-            else tgt_emb
-        )
+        dec_input = (F.dropout(tgt_emb, p=self.dropout, training=self.training)
+                     if self.dropout else tgt_emb)
 
         dec_output = self.transformer(
             enc_input,
