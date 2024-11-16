@@ -16,11 +16,8 @@ from tqdm.auto import tqdm
 sys.path.append('../../')
 from llmtoolkit.datasets.nlmdataset import GloveDataset, Word2VecDataset
 from llmtoolkit.models.lm.glove import GloveModel
-from llmtoolkit.utils.data_utils import (
-    get_loader,
-    load_ptb_data,
-    save_pretrained_vector,
-)
+from llmtoolkit.utils.data_utils import (get_loader, load_ptb_data,
+                                         save_pretrained_vector)
 
 if __name__ == '__main__':
 

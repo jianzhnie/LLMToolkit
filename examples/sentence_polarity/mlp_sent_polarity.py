@@ -14,7 +14,7 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 
-from nlptoolkit.data.utils.utils import load_sentence_polarity
+from llmtoolkit.data.utils.utils import load_sentence_polarity
 
 sys.path.append('../../')
 

@@ -9,7 +9,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader, Dataset
 
 sys.path.append('../../')
-from nlptoolkit.data.tokenizer import JiebaTokenizer
+from llmtoolkit.data.tokenizer import JiebaTokenizer
 from llmtoolkit.data.vocab import Vocab
 
 

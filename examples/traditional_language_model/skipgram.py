@@ -16,7 +16,8 @@ from tqdm.auto import tqdm
 sys.path.append('../../')
 from llmtoolkit.datasets.nlmdataset import SkipGramDataset, Word2VecDataset
 from llmtoolkit.models.lm import SkipGramModel
-from llmtoolkit.utils.data_utils import get_loader, load_ptb_data, save_pretrained
+from llmtoolkit.utils.data_utils import (get_loader, load_ptb_data,
+                                         save_pretrained)
 
 sys.path.append('../../')
 

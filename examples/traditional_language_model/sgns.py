@@ -15,12 +15,11 @@ import torch.optim as optim
 from tqdm.auto import tqdm
 
 sys.path.append('../../')
-from llmtoolkit.datasets.nlmdataset import (
-    NegativeSampleingSkipGramDataset,
-    Word2VecDataset,
-)
+from llmtoolkit.datasets.nlmdataset import (NegativeSampleingSkipGramDataset,
+                                            Word2VecDataset)
 from llmtoolkit.models.lm.word2vec import SkipGramNegativeSamplingModel
-from llmtoolkit.utils.data_utils import get_loader, load_ptb_data, save_pretrained
+from llmtoolkit.utils.data_utils import (get_loader, load_ptb_data,
+                                         save_pretrained)
 
 
 def get_unigram_distribution(corpus, vocab_size):

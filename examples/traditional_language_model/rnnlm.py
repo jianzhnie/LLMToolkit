@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm.auto import tqdm
 
-from nlptoolkit.data.utils.utils import (get_loader, load_reuters,
+from llmtoolkit.data.utils.utils import (get_loader, load_reuters,
                                          save_pretrained)
 from llmtoolkit.datasets.nlmdataset import RNNlmDataset
 from llmtoolkit.models.lm.word2vec import RNNLM

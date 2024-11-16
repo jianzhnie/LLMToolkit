@@ -16,7 +16,8 @@ from tqdm.auto import tqdm
 sys.path.append('../../')
 from llmtoolkit.datasets.nlmdataset import CbowDataset
 from llmtoolkit.models.lm import CBOWLanguageModel
-from llmtoolkit.utils.data_utils import get_loader, load_reuters, save_pretrained
+from llmtoolkit.utils.data_utils import (get_loader, load_reuters,
+                                         save_pretrained)
 
 if __name__ == '__main__':
     embedding_dim = 64

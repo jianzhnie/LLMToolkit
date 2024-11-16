@@ -9,7 +9,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_sequence
 from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 
-from nlptoolkit.data.utils.utils import load_sentence_polarity
+from llmtoolkit.data.utils.utils import load_sentence_polarity
 
 sys.path.append('../../')
 

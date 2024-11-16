@@ -8,7 +8,7 @@ from typing import List
 
 import torch
 
-from nlptoolkit.data.tokenizer import Tokenizer
+from llmtoolkit.data.tokenizer import Tokenizer
 from llmtoolkit.data.vocab import Vocab
 
 
