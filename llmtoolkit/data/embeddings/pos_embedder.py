@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2022-03-25 17:47:06
-LastEditTime: 2022-03-25 17:48:12
-LastEditors: jianzhnie
-Description:
-
-'''
-
 import torch.nn as nn
 
 

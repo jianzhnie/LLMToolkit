@@ -1,12 +1,3 @@
-"""
-Author: jianzhnie
-Date: 2021-12-22 18:12:16
-LastEditTime: 2021-12-28 19:15:47
-LastEditors: jianzhnie
-Description:
-
-"""
-
 import os
 import random
 import sys

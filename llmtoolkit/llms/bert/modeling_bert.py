@@ -1,12 +1,3 @@
-"""
-Author: jianzhnie
-Date: 2021-12-22 16:34:43
-LastEditTime: 2021-12-24 18:32:39
-LastEditors: jianzhnie
-Description:
-
-"""
-
 import logging
 import math
 from typing import Optional, Tuple, Union

@@ -1,11 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2022-03-24 12:31:11
-LastEditTime: 2022-03-24 18:40:21
-LastEditors: jianzhnie
-Description:
-
-'''
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

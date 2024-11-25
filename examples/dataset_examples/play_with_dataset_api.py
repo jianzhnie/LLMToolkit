@@ -1,11 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2022-03-11 11:15:41
-LastEditTime: 2022-03-11 16:11:17
-LastEditors: jianzhnie
-Description:
-
-'''
 from pprint import pprint
 
 from datasets import load_dataset

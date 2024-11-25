@@ -1,11 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2021-12-17 16:49:18
-LastEditTime: 2022-01-13 12:24:28
-LastEditors: jianzhnie
-Description:
-
-'''
 from typing import List, Tuple
 
 import torch

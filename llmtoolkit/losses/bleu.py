@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2021-12-20 14:50:02
-LastEditTime: 2021-12-20 14:50:22
-LastEditors: jianzhnie
-Description:
-
-'''
-
 import collections
 import math
 

@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2021-12-16 15:54:45
-LastEditTime: 2022-03-25 17:48:34
-LastEditors: jianzhnie
-Description:
-
-'''
-
 import math
 
 import torch

@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2021-12-23 15:26:52
-LastEditTime: 2022-01-13 12:24:47
-LastEditors: jianzhnie
-Description:
-
-'''
-
 import math
 from typing import Optional, Tuple
 

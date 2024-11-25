@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2021-12-23 16:42:56
-LastEditTime: 2021-12-23 16:42:56
-LastEditors: jianzhnie
-Description:
-
-'''
-
 from typing import Tuple, Union
 
 import torch

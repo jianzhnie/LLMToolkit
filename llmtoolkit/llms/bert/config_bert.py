@@ -1,11 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2022-03-09 17:41:46
-LastEditTime: 2022-03-09 17:43:57
-LastEditors: jianzhnie
-Description:
-
-'''
 from transformers import PretrainedConfig
 
 

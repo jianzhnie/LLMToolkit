@@ -5,24 +5,18 @@ import torch
 import torch.nn as nn
 
 from llmtoolkit.llms.bert.config_bert import BertConfig
-from llmtoolkit.llms.bert.modeling_bert import (
-    BertModel,
-    BertOnlyMLMHead,
-    BertOnlyNSPHead,
-    BertPreTrainedModel,
-    BertPreTrainingHeads,
-)
-from llmtoolkit.llms.modeling_outputs import (
-    BertForPreTrainingOutput,
-    BertModelOutput,
-    CausalLMOutput,
-    MaskedLMOutput,
-    MultipleChoiceModelOutput,
-    NextSentencePredictorOutput,
-    QuestionAnsweringModelOutput,
-    SequenceClassifierOutput,
-    TokenClassifierOutput,
-)
+from llmtoolkit.llms.bert.modeling_bert import (BertModel, BertOnlyMLMHead,
+                                                BertOnlyNSPHead,
+                                                BertPreTrainedModel,
+                                                BertPreTrainingHeads)
+from llmtoolkit.llms.modeling_outputs import (BertForPreTrainingOutput,
+                                              BertModelOutput, CausalLMOutput,
+                                              MaskedLMOutput,
+                                              MultipleChoiceModelOutput,
+                                              NextSentencePredictorOutput,
+                                              QuestionAnsweringModelOutput,
+                                              SequenceClassifierOutput,
+                                              TokenClassifierOutput)
 
 
 class BertForPreTraining(BertPreTrainedModel):
@@ -96,9 +90,8 @@ class BertForPreTraining(BertPreTrainedModel):
         Returns:
             Union[Tuple[torch.Tensor], BertForPreTrainingOutput]: Output tuple or BertForPreTrainingOutput object.
         """
-        return_dict = (
-            return_dict if return_dict is not None else self.config.use_return_dict
-        )
+        return_dict = (return_dict if return_dict is not None else
+                       self.config.use_return_dict)
 
         # Forward pass through BERT base model
         outputs: BertModelOutput = self.bert(
@@ -117,25 +110,24 @@ class BertForPreTraining(BertPreTrainedModel):
 
         # Predictions from pretraining heads
         prediction_scores, seq_relationship_score = self.bert_heads(
-            sequence_output, pooled_output
-        )
+            sequence_output, pooled_output)
 
         total_loss = None
         # Calculate total loss if labels are provided for both masked language modeling and next sentence prediction
         if labels is not None and next_sentence_label is not None:
             loss_fct = nn.CrossEntropyLoss()
             masked_lm_loss = loss_fct(
-                prediction_scores.view(-1, self.config.vocab_size), labels.view(-1)
-            )
-            next_sentence_loss = loss_fct(
-                seq_relationship_score.view(-1, 2), next_sentence_label.view(-1)
-            )
+                prediction_scores.view(-1, self.config.vocab_size),
+                labels.view(-1))
+            next_sentence_loss = loss_fct(seq_relationship_score.view(-1, 2),
+                                          next_sentence_label.view(-1))
             total_loss = masked_lm_loss + next_sentence_loss
 
         if not return_dict:
             # Return output as a tuple if return_dict is False
             output = (prediction_scores, seq_relationship_score) + outputs[2:]
-            return ((total_loss,) + output) if total_loss is not None else output
+            return ((total_loss, ) +
+                    output) if total_loss is not None else output
 
         # Return output as BertForPreTrainingOutput object if return_dict is True
         return BertForPreTrainingOutput(
@@ -227,9 +219,8 @@ class BertLMHeadModel(BertPreTrainedModel):
         Returns:
             :class:`~CausalLMOutput`: An instance of CausalLMOutput if `return_dict=True`.
         """
-        return_dict = (
-            return_dict if return_dict is not None else self.config.use_return_dict
-        )
+        return_dict = (return_dict if return_dict is not None else
+                       self.config.use_return_dict)
         if labels is not None:
             use_cache = False
 
@@ -251,7 +242,8 @@ class BertLMHeadModel(BertPreTrainedModel):
         lm_loss = None
         if labels is not None:
             # Shift prediction scores and input ids by one
-            shifted_prediction_scores = prediction_scores[:, :-1, :].contiguous()
+            shifted_prediction_scores = prediction_scores[:, :
+                                                          -1, :].contiguous()
             labels = labels[:, 1:].contiguous()
             loss_fct = nn.CrossEntropyLoss()
             lm_loss = loss_fct(
@@ -260,12 +252,12 @@ class BertLMHeadModel(BertPreTrainedModel):
             )
 
         if not return_dict:
-            output = (prediction_scores,)
+            output = (prediction_scores, )
             if output_hidden_states:
                 output += outputs[2:]
             if output_attentions:
                 output += outputs[3:]
-            return (lm_loss,) + output if lm_loss is not None else output
+            return (lm_loss, ) + output if lm_loss is not None else output
 
         return CausalLMOutput(
             loss=lm_loss,
@@ -274,9 +266,11 @@ class BertLMHeadModel(BertPreTrainedModel):
             attentions=outputs.attentions,
         )
 
-    def prepare_inputs_for_generation(
-        self, input_ids, attention_mask=None, use_cache=True, **model_kwargs
-    ):
+    def prepare_inputs_for_generation(self,
+                                      input_ids,
+                                      attention_mask=None,
+                                      use_cache=True,
+                                      **model_kwargs):
         """
         Prepare inputs for generation.
         Args:
@@ -292,9 +286,9 @@ class BertLMHeadModel(BertPreTrainedModel):
             attention_mask = input_ids.new_ones(input_shape)
 
         return {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "use_cache": use_cache,
+            'input_ids': input_ids,
+            'attention_mask': attention_mask,
+            'use_cache': use_cache,
         }
 
 
@@ -360,9 +354,8 @@ class BertForMaskedLM(BertPreTrainedModel):
         Returns:
             Union[Tuple[torch.Tensor], MaskedLMOutput]: Either a tuple of output tensors or a MaskedLMOutput object.
         """
-        return_dict = (
-            return_dict if return_dict is not None else self.config.use_return_dict
-        )
+        return_dict = (return_dict if return_dict is not None else
+                       self.config.use_return_dict)
 
         outputs: BertModelOutput = self.bert(
             input_ids,
@@ -382,14 +375,13 @@ class BertForMaskedLM(BertPreTrainedModel):
         if labels is not None:
             loss_fct = nn.CrossEntropyLoss()
             masked_lm_loss = loss_fct(
-                prediction_scores.view(-1, self.config.vocab_size), labels.view(-1)
-            )
+                prediction_scores.view(-1, self.config.vocab_size),
+                labels.view(-1))
 
         if not return_dict:
-            output = (prediction_scores,) + outputs[2:]
-            return (
-                ((masked_lm_loss,) + output) if masked_lm_loss is not None else output
-            )
+            output = (prediction_scores, ) + outputs[2:]
+            return (((masked_lm_loss, ) +
+                     output) if masked_lm_loss is not None else output)
 
         return MaskedLMOutput(
             loss=masked_lm_loss,
@@ -419,10 +411,13 @@ class BertForMaskedLM(BertPreTrainedModel):
 
         # Add a dummy token
         if self.config.pad_token_id is None:
-            raise ValueError("The PAD token should be defined for generation")
+            raise ValueError('The PAD token should be defined for generation')
 
         attention_mask = torch.cat(
-            [attention_mask, attention_mask.new_zeros((attention_mask.shape[0], 1))],
+            [
+                attention_mask,
+                attention_mask.new_zeros((attention_mask.shape[0], 1))
+            ],
             dim=-1,
         )
         dummy_token = torch.full(
@@ -433,10 +428,11 @@ class BertForMaskedLM(BertPreTrainedModel):
         )
         input_ids = torch.cat([input_ids, dummy_token], dim=1)
 
-        return {"input_ids": input_ids, "attention_mask": attention_mask}
+        return {'input_ids': input_ids, 'attention_mask': attention_mask}
 
 
 class BertForNextSentencePrediction(BertPreTrainedModel):
+
     def __init__(self, config):
         super().__init__(config)
 
@@ -488,17 +484,16 @@ class BertForNextSentencePrediction(BertPreTrainedModel):
         ```
         """
 
-        if "next_sentence_label" in kwargs:
+        if 'next_sentence_label' in kwargs:
             warnings.warn(
-                "The `next_sentence_label` argument is deprecated and will be removed in a future version, use"
-                " `labels` instead.",
+                'The `next_sentence_label` argument is deprecated and will be removed in a future version, use'
+                ' `labels` instead.',
                 FutureWarning,
             )
-            labels = kwargs.pop("next_sentence_label")
+            labels = kwargs.pop('next_sentence_label')
 
-        return_dict = (
-            return_dict if return_dict is not None else self.config.use_return_dict
-        )
+        return_dict = (return_dict if return_dict is not None else
+                       self.config.use_return_dict)
 
         outputs: BertModelOutput = self.bert(
             input_ids,
@@ -518,17 +513,13 @@ class BertForNextSentencePrediction(BertPreTrainedModel):
         next_sentence_loss = None
         if labels is not None:
             loss_fct = nn.CrossEntropyLoss()
-            next_sentence_loss = loss_fct(
-                seq_relationship_scores.view(-1, 2), labels.view(-1)
-            )
+            next_sentence_loss = loss_fct(seq_relationship_scores.view(-1, 2),
+                                          labels.view(-1))
 
         if not return_dict:
-            output = (seq_relationship_scores,) + outputs[2:]
-            return (
-                ((next_sentence_loss,) + output)
-                if next_sentence_loss is not None
-                else output
-            )
+            output = (seq_relationship_scores, ) + outputs[2:]
+            return (((next_sentence_loss, ) +
+                     output) if next_sentence_loss is not None else output)
 
         return NextSentencePredictorOutput(
             loss=next_sentence_loss,
@@ -539,17 +530,16 @@ class BertForNextSentencePrediction(BertPreTrainedModel):
 
 
 class BertForSequenceClassification(BertPreTrainedModel):
+
     def __init__(self, config: BertConfig):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.config = config
 
         self.bert = BertModel(config)
-        classifier_dropout = (
-            config.classifier_dropout
-            if config.classifier_dropout is not None
-            else config.hidden_dropout_prob
-        )
+        classifier_dropout = (config.classifier_dropout
+                              if config.classifier_dropout is not None else
+                              config.hidden_dropout_prob)
         self.dropout = nn.Dropout(classifier_dropout)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
@@ -574,9 +564,8 @@ class BertForSequenceClassification(BertPreTrainedModel):
             config.num_labels - 1]`. If `config.num_labels == 1` a regression loss is computed (Mean-Square loss), If
             `config.num_labels > 1` a classification loss is computed (Cross-Entropy).
         """
-        return_dict = (
-            return_dict if return_dict is not None else self.config.use_return_dict
-        )
+        return_dict = (return_dict if return_dict is not None else
+                       self.config.use_return_dict)
 
         outputs: BertModelOutput = self.bert(
             input_ids,
@@ -598,29 +587,29 @@ class BertForSequenceClassification(BertPreTrainedModel):
         if labels is not None:
             if self.config.problem_type is None:
                 if self.num_labels == 1:
-                    self.config.problem_type = "regression"
-                elif self.num_labels > 1 and (
-                    labels.dtype == torch.long or labels.dtype == torch.int
-                ):
-                    self.config.problem_type = "single_label_classification"
+                    self.config.problem_type = 'regression'
+                elif self.num_labels > 1 and (labels.dtype == torch.long
+                                              or labels.dtype == torch.int):
+                    self.config.problem_type = 'single_label_classification'
                 else:
-                    self.config.problem_type = "multi_label_classification"
+                    self.config.problem_type = 'multi_label_classification'
 
-            if self.config.problem_type == "regression":
+            if self.config.problem_type == 'regression':
                 loss_fct = nn.MSELoss()
                 if self.num_labels == 1:
                     loss = loss_fct(logits.squeeze(), labels.squeeze())
                 else:
                     loss = loss_fct(logits, labels)
-            elif self.config.problem_type == "single_label_classification":
+            elif self.config.problem_type == 'single_label_classification':
                 loss_fct = nn.CrossEntropyLoss()
-                loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-            elif self.config.problem_type == "multi_label_classification":
+                loss = loss_fct(logits.view(-1, self.num_labels),
+                                labels.view(-1))
+            elif self.config.problem_type == 'multi_label_classification':
                 loss_fct = nn.BCEWithLogitsLoss()
                 loss = loss_fct(logits, labels)
         if not return_dict:
-            output = (logits,) + outputs[2:]
-            return ((loss,) + output) if loss is not None else output
+            output = (logits, ) + outputs[2:]
+            return ((loss, ) + output) if loss is not None else output
 
         return SequenceClassifierOutput(
             loss=loss,
@@ -631,15 +620,14 @@ class BertForSequenceClassification(BertPreTrainedModel):
 
 
 class BertForMultipleChoice(BertPreTrainedModel):
+
     def __init__(self, config: BertConfig):
         super().__init__(config)
 
         self.bert = BertModel(config)
-        classifier_dropout = (
-            config.classifier_dropout
-            if config.classifier_dropout is not None
-            else config.hidden_dropout_prob
-        )
+        classifier_dropout = (config.classifier_dropout
+                              if config.classifier_dropout is not None else
+                              config.hidden_dropout_prob)
         self.dropout = nn.Dropout(classifier_dropout)
         self.classifier = nn.Linear(config.hidden_size, 1)
 
@@ -664,29 +652,18 @@ class BertForMultipleChoice(BertPreTrainedModel):
             num_choices-1]` where `num_choices` is the size of the second dimension of the input tensors. (See
             `input_ids` above)
         """
-        return_dict = (
-            return_dict if return_dict is not None else self.config.use_return_dict
-        )
+        return_dict = (return_dict if return_dict is not None else
+                       self.config.use_return_dict)
         num_choices = input_ids.shape[1]
 
-        input_ids = (
-            input_ids.view(-1, input_ids.size(-1)) if input_ids is not None else None
-        )
-        attention_mask = (
-            attention_mask.view(-1, attention_mask.size(-1))
-            if attention_mask is not None
-            else None
-        )
-        token_type_ids = (
-            token_type_ids.view(-1, token_type_ids.size(-1))
-            if token_type_ids is not None
-            else None
-        )
-        position_ids = (
-            position_ids.view(-1, position_ids.size(-1))
-            if position_ids is not None
-            else None
-        )
+        input_ids = (input_ids.view(-1, input_ids.size(-1))
+                     if input_ids is not None else None)
+        attention_mask = (attention_mask.view(-1, attention_mask.size(-1))
+                          if attention_mask is not None else None)
+        token_type_ids = (token_type_ids.view(-1, token_type_ids.size(-1))
+                          if token_type_ids is not None else None)
+        position_ids = (position_ids.view(-1, position_ids.size(-1))
+                        if position_ids is not None else None)
 
         outputs: BertModelOutput = self.bert(
             input_ids,
@@ -711,8 +688,8 @@ class BertForMultipleChoice(BertPreTrainedModel):
             loss = loss_fct(reshaped_logits, labels)
 
         if not return_dict:
-            output = (reshaped_logits,) + outputs[2:]
-            return ((loss,) + output) if loss is not None else output
+            output = (reshaped_logits, ) + outputs[2:]
+            return ((loss, ) + output) if loss is not None else output
 
         return MultipleChoiceModelOutput(
             loss=loss,
@@ -723,16 +700,15 @@ class BertForMultipleChoice(BertPreTrainedModel):
 
 
 class BertForTokenClassification(BertPreTrainedModel):
+
     def __init__(self, config: BertConfig):
         super().__init__(config)
         self.num_labels = config.num_labels
 
         self.bert = BertModel(config, add_pooling_layer=False)
-        classifier_dropout = (
-            config.classifier_dropout
-            if config.classifier_dropout is not None
-            else config.hidden_dropout_prob
-        )
+        classifier_dropout = (config.classifier_dropout
+                              if config.classifier_dropout is not None else
+                              config.hidden_dropout_prob)
         self.dropout = nn.Dropout(classifier_dropout)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
@@ -755,9 +731,8 @@ class BertForTokenClassification(BertPreTrainedModel):
         labels (`torch.LongTensor` of shape `(batch_size, sequence_length)`, *optional*):
             Labels for computing the token classification loss. Indices should be in `[0, ..., config.num_labels - 1]`.
         """
-        return_dict = (
-            return_dict if return_dict is not None else self.config.use_return_dict
-        )
+        return_dict = (return_dict if return_dict is not None else
+                       self.config.use_return_dict)
 
         outputs = self.bert(
             input_ids,
@@ -781,8 +756,8 @@ class BertForTokenClassification(BertPreTrainedModel):
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
 
         if not return_dict:
-            output = (logits,) + outputs[2:]
-            return ((loss,) + output) if loss is not None else output
+            output = (logits, ) + outputs[2:]
+            return ((loss, ) + output) if loss is not None else output
 
         return TokenClassifierOutput(
             loss=loss,
@@ -793,6 +768,7 @@ class BertForTokenClassification(BertPreTrainedModel):
 
 
 class BertForQuestionAnswering(BertPreTrainedModel):
+
     def __init__(self, config: BertConfig):
         super().__init__(config)
         self.num_labels = config.num_labels
@@ -826,9 +802,8 @@ class BertForQuestionAnswering(BertPreTrainedModel):
             Positions are clamped to the length of the sequence (`sequence_length`). Position outside of the sequence
             are not taken into account for computing the loss.
         """
-        return_dict = (
-            return_dict if return_dict is not None else self.config.use_return_dict
-        )
+        return_dict = (return_dict if return_dict is not None else
+                       self.config.use_return_dict)
 
         outputs = self.bert(
             input_ids,
@@ -867,7 +842,8 @@ class BertForQuestionAnswering(BertPreTrainedModel):
 
         if not return_dict:
             output = (start_logits, end_logits) + outputs[2:]
-            return ((total_loss,) + output) if total_loss is not None else output
+            return ((total_loss, ) +
+                    output) if total_loss is not None else output
 
         return QuestionAnsweringModelOutput(
             loss=total_loss,

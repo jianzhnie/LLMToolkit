@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2022-01-05 15:38:29
-LastEditTime: 2022-03-07 16:17:04
-LastEditors: jianzhnie
-Description:
-
-'''
-
 import sys
 
 import torch

@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2022-01-19 17:15:05
-LastEditTime: 2022-03-04 18:30:51
-LastEditors: jianzhnie
-Description:
-
-'''
-
 import json
 import os
 import sys

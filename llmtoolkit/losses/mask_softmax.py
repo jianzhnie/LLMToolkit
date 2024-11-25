@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2021-12-20 15:43:53
-LastEditTime: 2021-12-22 09:33:07
-LastEditors: jianzhnie
-Description:
-
-'''
-
 from typing import List, Union
 
 import torch

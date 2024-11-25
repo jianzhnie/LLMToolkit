@@ -1,12 +1,3 @@
-"""
-Author: jianzhnie
-Date: 2021-12-17 12:13:36
-LastEditTime: 2022-01-05 15:25:13
-LastEditors: jianzhnie
-Description:
-
-"""
-
 import os
 import re
 from typing import List

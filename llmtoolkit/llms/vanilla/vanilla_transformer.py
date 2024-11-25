@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2021-12-16 14:10:33
-LastEditTime: 2021-12-30 15:56:18
-LastEditors: jianzhnie
-Description:
-
-'''
-
 import copy
 from typing import Optional
 

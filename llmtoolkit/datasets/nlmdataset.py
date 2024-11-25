@@ -1,12 +1,3 @@
-"""
-Author: jianzhnie
-Date: 2022-01-05 09:40:22
-LastEditTime: 2022-03-04 17:17:59
-LastEditors: jianzhnie
-Description:
-
-"""
-
 import math
 import random
 import sys

@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2021-12-30 14:12:39
-LastEditTime: 2021-12-30 14:40:49
-LastEditors: jianzhnie
-Description:
-
-'''
-
 import torch
 import torch.nn as nn
 from torch.autograd import Variable

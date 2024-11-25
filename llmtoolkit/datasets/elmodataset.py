@@ -1,12 +1,3 @@
-"""
-Author: jianzhnie
-Date: 2022-01-05 16:38:43
-LastEditTime: 2022-01-20 09:47:52
-LastEditors: jianzhnie
-Description:
-
-"""
-
 import codecs
 
 import torch

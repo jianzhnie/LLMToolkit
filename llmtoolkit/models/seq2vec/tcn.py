@@ -1,12 +1,3 @@
-'''
-Author: jianzhnie
-Date: 2022-03-24 18:07:42
-LastEditTime: 2022-03-24 18:19:07
-LastEditors: jianzhnie
-Description:
-
-'''
-
 import torch.nn as nn
 from torch.nn.utils.weight_norm import weight_norm
 
